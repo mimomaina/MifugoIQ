@@ -60,7 +60,8 @@ The graph is structured to support complex, multi-hop GraphRAG traversals requir
 ## 4. Expected Graph Outputs & Flagship Queries
 The architecture is specifically optimized for multi-hop GraphRAG reasoning. Below are the core Cypher query patterns that power the MifugoIQ intelligence layer.
 
-<img width="1195" height="590" alt="image" src="https://github.com/user-attachments/assets/26022a9c-16a4-4969-88fe-e832745e1d06" />
+<img width="1195" height="551" alt="image" src="https://github.com/user-attachments/assets/8c7e046d-8094-43ec-b6bf-e7d7540e66f9" />
+
 
 
 ### 4.1 Net Realizable Value (NRV) & Market Routing
@@ -79,5 +80,37 @@ RETURN
     transporter.costBenchmarkKES AS transportCost, 
     (obs.priceKES - transporter.costBenchmarkKES) AS netRealizableValue 
 ORDER BY netRealizableValue DESC 
-LIMIT 3;
 
+LIMIT 3;
+```
+### 4.2 Risk-Adjusted Collateral Valuation
+Used by AgriFin lenders to penalize or adjust Loan-to-Value (LTV) ratios based on localized environmental stress (e.g., severe drought or excessive water trekking indicating poor herd body condition).
+
+
+```cypher
+// Evaluate origin county friction metrics to adjust collateral risk profiles
+MATCH (c:County {name: 'Kajiado'})-[:HAS_METRIC]->(f:FrictionMetric {type: 'Livestock Water Trek'})
+WHERE f.date >= date('2026-02-01')
+RETURN 
+    c.name AS county, 
+    f.value AS waterTrekKm, 
+    CASE 
+        WHEN f.value > 4.5 THEN 'High Risk: Reduce LTV (Herd Caloric Stress)'
+        WHEN f.value > 3.0 THEN 'Moderate Risk: Standard LTV'
+        ELSE 'Low Risk: Premium LTV'
+    END AS underwritingRecommendation;
+```
+
+### 5. Repository Structure
+mifugo-iq-engine/
+├── April_NDMA/               # Raw/Processed NDMA Early Warning Bulletins (April 2026)
+├── May_NDMA/                 # Raw/Processed NDMA Early Warning Bulletins (May 2026)
+├── June_NDMA/                # Raw/Processed NDMA Early Warning Bulletins (June 2026)
+├── Approvedexportslaughterhouses.csv  # DVS & Halal-certified abattoir directory
+├── feed_prices_mkulima_bora.csv.csv   # Feed, fodder, and supplement pricing benchmarks
+├── friction_metrics.csv.csv           # Biophysical proxies (VCI, water trekking distances)
+├── marketandzone.csv                  # Geographic mapping of markets to livelihood zones
+├── prices.csv                         # Time-series livestock and commodity price observations
+├── transport_benchmarks.csv.csv       # Logistics and trucking cost benchmarks
+├── Cypher.txt                         # Master Neo4j schema, constraints, and seeding scripts
+└── .gitignore                         # Standard Python/Env ignore rules
