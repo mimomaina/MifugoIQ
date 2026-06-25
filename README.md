@@ -104,24 +104,24 @@ RETURN
 ### 5. Repository Structure
 mifugo-iq-engine/
 
- April_NDMA/               # Raw/Processed NDMA Early Warning Bulletins (April 2026)
+April_NDMA/                            # Raw/Processed NDMA Early Warning Bulletins (April 2026)
 
-├── May_NDMA/                 # Raw/Processed NDMA Early Warning Bulletins (May 2026)
+May_NDMA/                              # Raw/Processed NDMA Early Warning Bulletins (May 2026)
 
-├── June_NDMA/                # Raw/Processed NDMA Early Warning Bulletins (June 2026)
+June_NDMA/                             # Raw/Processed NDMA Early Warning Bulletins (June 2026)
 
-├── Approvedexportslaughterhouses.csv  # DVS & Halal-certified abattoir directory
+Approvedexportslaughterhouses.csv      # DVS & Halal-certified abattoir directory
 
-├── feed_prices_mkulima_bora.csv.csv   # Feed, fodder, and supplement pricing benchmarks
+feed_prices_mkulima_bora.csv.csv       # Feed, fodder, and supplement pricing benchmarks
 
-├── friction_metrics.csv.csv           # Biophysical proxies (VCI, water trekking distances)
+friction_metrics.csv.csv               # Biophysical proxies (VCI, water trekking distances)
 
-├── marketandzone.csv                  # Geographic mapping of markets to livelihood zones
+marketandzone.csv                      # Geographic mapping of markets to livelihood zones
 
-├── prices.csv                         # Time-series livestock and commodity price observations
+prices.csv                             # Time-series livestock and commodity price observations
 
-├── transport_benchmarks.csv.csv       # Logistics and trucking cost benchmarks
+transport_benchmarks.csv.csv           # Logistics and trucking cost benchmarks
 
-├── Cypher.txt                         # Master Neo4j schema, constraints, and seeding scripts
+Cypher.txt                             # Master Neo4j schema, constraints, and seeding scripts
 
-└── .gitignore                         # Standard Python/Env ignore rules
+.gitignore                             # Standard Python/Env ignore rules
