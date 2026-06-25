@@ -1,6 +1,6 @@
 # MifugoIQ: Knowledge-Graph-Powered Market Intelligence Engine
 
-Market Intelligence & Collateral Valuation Architecture**  
+Market Intelligence & Collateral Valuation Architecture
 ---
 
 ## 1. Executive Summary
@@ -104,7 +104,7 @@ RETURN
 ### 5. Repository Structure
 mifugo-iq-engine/
 
-├── April_NDMA/               # Raw/Processed NDMA Early Warning Bulletins (April 2026)
+ April_NDMA/               # Raw/Processed NDMA Early Warning Bulletins (April 2026)
 
 ├── May_NDMA/                 # Raw/Processed NDMA Early Warning Bulletins (May 2026)
 
