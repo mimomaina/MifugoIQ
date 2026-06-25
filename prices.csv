@@ -1,0 +1,30 @@
+date,market_or_ward,commodity,animal_class_or_grade,avg_price_kes,min_price_kes,max_price_kes,source
+2026-02,Kajiado County Average,Cattle,Medium Bull,37190,20000,50000,NDMA
+2026-02,Ewuaso,Cattle,Medium Bull (Zebu proxy),20000,20000,20000,NDMA
+2026-02,Kaputiei North,Cattle,Medium Bull (Boran proxy),50000,50000,50000,NDMA
+2026-02,Kajiado County Average,Goat,Medium,7119,5000,8000,NDMA
+2026-02,Mbirikani,Goat,Medium,5000,5000,5000,NDMA
+2026-02,Dalalekutuk,Goat,Medium,8000,8000,8000,NDMA
+2026-02,Loitoktok,Maize,per kg,45,45,45,NDMA
+2026-02,Ewuaso,Maize,per kg,120,120,120,NDMA
+2026-02,Ewuaso,Beans,per kg,200,200,200,NDMA
+2026-02,Kajiado County Average,Milk,per litre,80,80,80,NDMA
+2026-04,Kajiado County Average,Cattle,Medium Bull,45952,32000,55000,NDMA
+2026-04,Ewuaso,Cattle,Medium Bull (Zebu proxy),32000,32000,32000,NDMA
+2026-04,Kajiado County Average,Goat,Medium,8429,7000,10000,NDMA
+2026-04,Kaputiei North,Goat,Medium,7000,7000,7000,NDMA
+2026-04,Loodokilani,Goat,Medium,10000,10000,10000,NDMA
+2026-04,Loitoktok,Maize,per kg,50,50,50,NDMA
+2026-04,Ewuaso,Maize,per kg,130,130,130,NDMA
+2026-04,Mosiro,Beans,per kg,180,180,180,NDMA
+2026-04,Kajiado County Average,Milk,per litre,70,70,70,NDMA
+2026-05,Kajiado County Average,Cattle,Medium Bull,46000,34000,65000,NDMA
+2026-05,Dalalekutuk,Cattle,Medium Bull,34000,34000,34000,NDMA
+2026-05,Kaputiei North,Cattle,Medium Bull (Boran proxy),65000,65000,65000,NDMA
+2026-05,Kajiado County Average,Goat,Medium,8600,7500,10000,NDMA
+2026-05,Mbirikani,Goat,Medium,7500,7500,7500,NDMA
+2026-05,Loitoktok,Maize,per kg,50,50,50,NDMA
+2026-05,Ewuaso,Maize,per kg,120,120,120,NDMA
+2026-05,Iloodokilani,Beans,per kg,180,180,180,NDMA
+2026-05,Kajiado County Average,Milk,per litre,68,60,80,NDMA
+2026-05,Mbirikani,Milk,per litre,60,60,60,NDMA
