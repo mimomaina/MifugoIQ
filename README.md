@@ -78,47 +78,58 @@ The agent never fabricates a number. Every price, fee, or cost it states is eith
 
 traversal — not the LLM — does the reasoning. The LLM only composes the answer into natural language and translates it into the user's language. 
 
-## **3. System Architecture** 
-
-┌─────────────────────────────────────────────────────────────┐
-│                        DATA SOURCES                         │
-│  NDMA Bulletins · KNBS Stats · DVS Registry · KMC Prices    │
-│  Feed Manufacturer Lists · Transport Rate Surveys           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ CSV / PDF ingestion
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  KNOWLEDGE GRAPH LAYER                      │
-│                       Neo4j AuraDB                          │
-│  County · Market · Breed · AnimalClass · PriceObservation   │
-│  Slaughterhouse · Transporter · FeedProduct · FrictionMetric│
-│  (Cypher.txt — schema + seed scripts)                       │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ Cypher queries
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                GRAPHRAG REASONING LAYER                     │
-│                  FastAPI Backend (backend/)                 │
-│                                                             │
-│  agent.py          — Intent detection → Cypher template     │
-│                       → Neo4j → Featherless LLM → answer    │
-│  cypher_templates.py — Parameterized query library          │
-│  neo4j_client.py   — AuraDB connection wrapper              │
-│  main.py           — 7 REST endpoints                       │
-│  masumi.py         — Agent registration + payment rail      │
-└────────────┬────────────────────────┬───────────────────────┘
-             │ /api/chat              │ /api/masumi/report
-             ▼                        ▼
-┌────────────────────┐    ┌───────────────────────────────────┐
-│  LOVABLE FRONTEND  │    │        MASUMI AGENT NETWORK       │
-│  mifugoiq1.lovable │    │  MifugoIQ registered as paid      │
-│  .app              │    │  agent service (ADA/USDM per      │
-│                    │    │  report). Demo: AgriFin Lender    │
-│  Chat.tsx          │    │  Agent → pays → gets Collateral   │
-│  MasumiDemo.tsx    │    │  Valuation Report → loan decision │
-│  mifugoiq.ts       │    │                                   │
-└────────────────────┘    └───────────────────────────────────┘
-
+```mermaid
+graph TB
+    subgraph "Data Sources"
+        NDMA[NDMA Bulletins]
+        KNBS[KNBS Stats]
+        DVS[DVS Registry]
+        KMC[KMC Prices]
+        FEED[Feed Lists]
+    end
+    
+    subgraph "Knowledge Layer - Neo4j"
+        GRAPH[(Neo4j Graph DB)]
+        COUNTY[County Nodes]
+        MARKET[Market Nodes]
+        BREED[Breed Nodes]
+        PRICE[Price Observations]
+        SLAUGHTER[Slaughterhouses]
+    end
+    
+    subgraph "Reasoning Layer - Featherless"
+        AGENT[GraphRAG Agent]
+        LLM[Qwen2.5-7B LLM]
+        CYPHER[Cypher Templates]
+    end
+    
+    subgraph "Application Layer - Lovable"
+        CHAT[Chat Interface]
+        EXPLORER[Price Explorer]
+        MASUMI[Masumi Demo]
+    end
+    
+    subgraph "Agent Economy - Masumi"
+        MASUMI_NET[Masumi Network]
+        PAYMENT[Agent Payments]
+    end
+    
+    NDMA --> GRAPH
+    KNBS --> GRAPH
+    DVS --> GRAPH
+    KMC --> GRAPH
+    FEED --> GRAPH
+    
+    GRAPH --> AGENT
+    AGENT --> LLM
+    AGENT --> CYPHER
+    
+    AGENT --> CHAT
+    AGENT --> EXPLORER
+    AGENT --> MASUMI
+    
+    AGENT --> MASUMI_NET
+    MASUMI_NET --> PAYMENT
 ## **Technology Stack:** 
 
 ## **Layer Technology** 
