@@ -292,23 +292,7 @@ VITE_API_URL = https://your-backend.railway.app
 
 ## **11. Deployment & Setup** 
 
-## **Prerequisites** 
 
-- Neo4j AuraDB instance (free tier works) with the graph seeded from Cypher.txt 
-
-- Featherless API key (fl-...) from featherless.ai 
-
-- Railway or Render account for backend hosting 
-
-- Lovable project at mifugoiq1.lovable.app 
-
-## **Step 1 — Seed the Neo4j Graph** 
-
-1. Go to console.neo4j.io → open your instance → **Query** 
-
-2. Copy the contents of Cypher.txt and run it in the Neo4j Browser 
-
-3. Verify with: MATCH (n) RETURN labels(n), count(n) ORDER BY count(n) DESC 
 
 ## **Step 2 — Configure Environment Variables** 
 
