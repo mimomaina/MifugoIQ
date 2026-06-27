@@ -4,13 +4,6 @@
 
 **Kenya AI Challenge 2026 · AgriFin Track · Mercy Corps AgriFin Network** Built for the Neo4j · Featherless · Lovable · Masumi technology tracks 
 
-**==> picture [50 x 51] intentionally omitted <==**
-
-**==> picture [50 x 51] intentionally omitted <==**
-
-**==> picture [51 x 51] intentionally omitted <==**
-
-**==> picture [51 x 51] intentionally omitted <==**
 
 ## **Table of Contents** 
 
