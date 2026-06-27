@@ -113,7 +113,7 @@ RETURN
 ```
 
 ### 5. Repository Structure
-mifugo-iq-engine/
+MifugoIQ
 
 April_NDMA                            -  Raw/Processed NDMA Early Warning Bulletins (April 2026)
 
