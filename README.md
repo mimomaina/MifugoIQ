@@ -4,6 +4,13 @@
 
 **Kenya AI Challenge 2026 · AgriFin Track · Mercy Corps AgriFin Network** Built for the Neo4j · Featherless · Lovable · Masumi technology tracks 
 
+**==> picture [50 x 51] intentionally omitted <==**
+
+**==> picture [50 x 51] intentionally omitted <==**
+
+**==> picture [51 x 51] intentionally omitted <==**
+
+**==> picture [51 x 51] intentionally omitted <==**
 
 ## **Table of Contents** 
 
@@ -78,58 +85,18 @@ The agent never fabricates a number. Every price, fee, or cost it states is eith
 
 traversal — not the LLM — does the reasoning. The LLM only composes the answer into natural language and translates it into the user's language. 
 
-```mermaid
-graph TB
-    subgraph "Data Sources"
-        NDMA[NDMA Bulletins]
-        KNBS[KNBS Stats]
-        DVS[DVS Registry]
-        KMC[KMC Prices]
-        FEED[Feed Lists]
-    end
-    
-    subgraph "Knowledge Layer - Neo4j"
-        GRAPH[(Neo4j Graph DB)]
-        COUNTY[County Nodes]
-        MARKET[Market Nodes]
-        BREED[Breed Nodes]
-        PRICE[Price Observations]
-        SLAUGHTER[Slaughterhouses]
-    end
-    
-    subgraph "Reasoning Layer - Featherless"
-        AGENT[GraphRAG Agent]
-        LLM[Qwen2.5-7B LLM]
-        CYPHER[Cypher Templates]
-    end
-    
-    subgraph "Application Layer - Lovable"
-        CHAT[Chat Interface]
-        EXPLORER[Price Explorer]
-        MASUMI[Masumi Demo]
-    end
-    
-    subgraph "Agent Economy - Masumi"
-        MASUMI_NET[Masumi Network]
-        PAYMENT[Agent Payments]
-    end
-    
-    NDMA --> GRAPH
-    KNBS --> GRAPH
-    DVS --> GRAPH
-    KMC --> GRAPH
-    FEED --> GRAPH
-    
-    GRAPH --> AGENT
-    AGENT --> LLM
-    AGENT --> CYPHER
-    
-    AGENT --> CHAT
-    AGENT --> EXPLORER
-    AGENT --> MASUMI
-    
-    AGENT --> MASUMI_NET
-    MASUMI_NET --> PAYMENT
+## **3. System Architecture** 
+ DATA SOURCES (NDMA, KNBS, DVS, KMC)
+     │
+     ▼ (CSV/PDF Ingestion)
+KNOWLEDGE GRAPH LAYER (Neo4j AuraDB)
+     │
+     ▼ (Cypher Queries)
+️ GRAPHRAG REASONING LAYER (FastAPI Backend + Featherless LLM)
+     │
+     ├─── /api/chat ────►  LOVABLE FRONTEND (Chat UI, Price Explorer)
+     └─── /api/masumi ──►  MASUMI AGENT NETWORK (B2B Agent Payments)
+
 ## **Technology Stack:** 
 
 ## **Layer Technology** 
@@ -173,7 +140,6 @@ MifugoIQ/
 ├── 📄 INTEGRATION_GUIDE.md                     # ★ Deployment & setup guide (keys, steps, debug)
 ├── 📄 .gitignore
 └── 📄 README.md                                # This file
-
 ## **5. Data Layer — Sources & Ingestion** 
 
 ## **5.1 Data Sources** 
@@ -408,7 +374,7 @@ The agent system prompt enforces three hard constraints:
 
 The FastAPI server (backend/main.py) exposes 7 endpoints consumed by both the Lovable frontend and the Masumi agent network. 
 
-
+   
 
 
 
