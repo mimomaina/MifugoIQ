@@ -106,7 +106,398 @@ RETURN
         WHEN f.value > 3.0 THEN 'Moderate Risk: Standard LTV'
         ELSE 'Low Risk: Premium LTV'
     END AS underwritingRecommendation;
-```
+```## **7. GraphRAG Agent — Featherless** 
+
+## **7.1 Pipeline** 
+
+The agent in backend/agent.py follows a strict, grounded pipeline: 
+
+User query (EN / SW) │ ▼ Intent detection           — keyword + pattern matching Entity extraction          — breed, age class, county, head count, days │ 
+
+▼ Cypher template selection  — cypher_templates.py (7 intent categories: price_lookup · net_realizable_value · price_comparison · halal_slaughterhouse · feed_cost · collateral_valuation · friction_metrics) │ ▼ 
+
+Neo4j query execution      — neo4j_client.py → AuraDB │ ▼ 
+
+Grounding check            — if results empty → honest "no data" response │ ▼ 
+
+Featherless LLM call       — compose cited answer in user's language │ ▼ 
+
+Response                   — grounded answer with source + date citations 
+
+## **7.2 Model** 
+
+**Primary:** Qwen/Qwen2.5-7B-Instruct via Featherless OpenAI-compatible endpoint 
+
+- Strong instruction-following for structured reasoning tasks 
+
+- Reliable English + Kiswahili output 
+
+- Fast enough for live demo latency 
+
+**Fallback:** Qwen/Qwen2.5-14B-Instruct (upgrade via FEATHERLESS_MODEL env var if quality needs improvement) 
+
+## **7.3 Grounding Rules (Non-Negotiable)** 
+
+The agent system prompt enforces three hard constraints: 
+
+1. **Never fabricate a number.** Every price, fee, or cost must come from a graph query result. If the graph returns no data, the agent says so explicitly. 
+
+2. **Always cite the source.** Every figure is tagged with its data source (e.g. "per NDMA May 2026 bulletin") and date. 
+
+3. **Respond in the user's language.** English in → English out. Kiswahili in → Kiswahili out. Sheng → Kiswahili/English mix. 
+
+## **7.4 Sample Interactions** 
+
+**User Input Languag What Happens e** 
+
+|"Ni bei gani ya ng'ombe wa|Kiswahili|Price lookup<br>Cypher<br>NDMA price data<br>→<br>→|
+|---|---|---|
+|Boran miaka 2–3 huko<br>Kajiado?"||Kiswahili response with source<br>→|
+|"Value 15 Boran steers, 2–3|English|Collateral valuation<br>multi-hop Cypher<br>→|
+|years, Kajiado, as loan<br>collateral"||(price + transport + friction)<br>structured<br>→<br>report with LTV fag|
+|"Best market for my 15|English|NRV query<br>ranks markets by (price<br>→<br>−|
+|steers from Kajiado this<br>week, all-in?"||transport cost)<br>recommended market<br>→<br>with net fgure|
+|"Which Halal abattoirs can I|English|Halal flter query<br>facility list with<br>→|
+|use near Garissa?"||capacity and fees|
+
+
+
+## **8. Backend API** 
+
+The FastAPI server (backend/main.py) exposes 7 endpoints consumed by both the Lovable frontend and the Masumi agent network. 
+
+## **Endpoints** 
+
+|**Method**|**Path**|**Description**|
+|---|---|---|
+|GET|/api/health|Health check — confirms backend + Neo4j connection|
+|POST|/api/chat|Main agent endpoint. Body:{"query": "..."}.|
+|||Returns: answer + intent + graph data|
+|GET|/api/prices|All recent price observations. Query params:?|
+|||county=&breed=|
+|GET|/api/|Slaughterhouse directory. Query param:?|
+||slaughterhouses|halal_only=true|
+|GET|/api/feed|Feed product prices. Query param:?county=|
+|GET|/api/nrv|Net Realizable Value ranking. Params:?|
+|||breed=&age_class=&origin_county=|
+|GET|/api/masumi/|Full 5-step Masumi agent-to-agent demo flow|
+||demo||
+
+
+
+POST /api/masumi/ Paid Masumi service endpoint — receives payment ref, returns Collateral Valuation Report report 
+
+## **Example: /api/chat** 
+
+curl -X POST https://your-backend.railway.app/api/chat \ 
+
+- -H "Content-Type: application/json" \ 
+
+- -d '{"query": "What is the price of a Boran steer in Kajiado this month?"}' 
+
+{ "answer": "Based on NDMA data, a Store (2–3yr) Boran steer in Kajiado was priced at approximately KES 45,000–48,000 per head at Kiserian market as of May 2026 (NDMA May 2026 bulletin). This represents a slight increase from the April figure of KES 43,500.", "intent": "price_lookup", "entities": {"breed": "Boran", "age_class": "Store(2-3yr)", "county": "Kajiado"}, "graph_data": [...], "model": "Qwen/Qwen2.5-7B-Instruct", "query_description": "Price lookup: Boran Store(2-3yr) in Kajiado" } 
+
+## **9. Agent Economy — Masumi** 
+
+Masumi enables MifugoIQ to operate as a **paid B2B intelligence service** on the Cardano blockchain — other AI agents (lender bots, cooperative procurement agents, export sourcing agents) can pay per query without any human in the loop. 
+
+## **9.1 Registered Services & Pricing** 
+
+|**Service**|**Price**|**Inputs**|**Output**|
+|---|---|---|---|
+||**(USDM)**|||
+|Collateral|$0.50|breed, age class,|Per-head price, NRV,|
+|Valuation Report||head count, county|environmental risk flag, suggested|
+||||LTV %|
+|Finishing Cost|$0.25|breed, head count,|Total feed cost, cost-per-kg-gained,|
+|Report||days, county|margin estimate|
+|NRV Logistics|$0.25|breed, age class,|Ranked market comparison|
+|Report||origin county|(gross price<br>transport cost)<br>−|
+
+
+
+## **9.2 Agent-to-Agent Demo Flow** 
+
+The Masumi demo (/api/masumi/demo) simulates the exact Section 4.6.2 scenario from the project outline — end-to-end in five visible steps: 
+
+- Step 1: AgriFin Lender Agent receives loan application 
+
+- ("15 Boran steers, 2–3 years, Kajiado") 
+
+- │ 
+
+Step 2: Lender Agent requests payment invoice from MifugoIQ 
+
+   - → payment_ref: "DEMO-COLLATERAL-001", amount: 0.50 USDM 
+
+- │ 
+
+Step 3: Payment verified (dev mode: auto-confirmed; live mode: on-chain) 
+
+- │ 
+
+## Step 4: MifugoIQ generates Collateral Valuation Report 
+
+   - → per_head_price_kes: 45,000 
+
+   - → total_gross_kes: 675,000 
+
+   - → net_realizable_value_kes: 637,500 
+
+   - → underwriting_recommendation: "Moderate Risk — Standard LTV applies" 
+
+- │ 
+
+Step 5: Lender Agent computes loan decision 
+
+- → LTV 65% → loan_limit_kes: 414,375 → DECISION: APPROVE 
+
+**Why this matters commercially:** This is MifugoIQ's primary B2B revenue model from day one — financial institutions as paying agent-consumers, rather than relying on lowwillingness-to-pay end users. The same Masumi rail Phase 1 uses for per-report payments is the exact infrastructure Phase 2's escrow marketplace reuses. 
+
+## **9.3 Dev Mode vs Live Mode** 
+
+|**.3 Dev**|**Mode vs Live Mode**||
+|---|---|---|
+|**Mode**|**Setting**|**Behaviour**|
+|Dev /|MASUMI_DEV_MODE=true,|Payment steps are simulated; full 5-step|
+|Demo|MASUMI_API_KEYblank|demo still runs; safe for live demo without|
+|||funded wallet|
+|Live|MASUMI_API_KEY=<key>,|Real on-chain payments via Cardano; agent|
+||MASUMI_DEV_MODE=false|auto-registered on Masumi network at startup|
+
+
+
+## **10. Frontend — Lovable** 
+
+The Lovable web app at mifugoiq1.lovable.app is the primary user-facing interface. The lovable/ folder contains three files to paste directly into the Lovable project editor. 
+
+## **Application Surfaces** 
+
+**Surface Component What It Shows Chat** Chat.tsx Bilingual conversational interface with suggested query chips; connects to /api/chat; shows intent tag and source on every answer **Price Explorer** (built in County-level price heatmap and trend charts driven by Lovable) /api/prices **Value Chain** (built in Interactive Neo4j graph visualisation — selecting a **Graph View** Lovable) county highlights its connected markets, slaughterhouses, feed suppliers, transporters **Directories** (built in Searchable/filterable Slaughterhouse (Halal filter), Lovable) Feed Supplier, and Transporter lists from /api/slaughterhouses and /api/feed **Masumi Demo** MasumiDemo. Interactive UI showing the full 5-step agent-to-agent tsx payment flow with live results 
+
+## **Design Principles** 
+
+- **Mobile-first:** Optimised for basic smartphones on limited data — most herders and SACCO field officers access via mobile 
+
+- **Bilingual:** English and Kiswahili throughout all UI text and agent responses 
+
+- **Trust through transparency:** Every data point shown carries a visible source and date tag 
+
+## **Connecting Lovable to the Backend** 
+
+## In your Lovable project: **Project Settings → Environment Variables → Add:** 
+
+VITE_API_URL = https://your-backend.railway.app 
+
+## **11. Deployment & Setup** 
+
+## **Prerequisites** 
+
+- Neo4j AuraDB instance (free tier works) with the graph seeded from Cypher.txt 
+
+- Featherless API key (fl-...) from featherless.ai 
+
+- Railway or Render account for backend hosting 
+
+- Lovable project at mifugoiq1.lovable.app 
+
+## **Step 1 — Seed the Neo4j Graph** 
+
+1. Go to console.neo4j.io → open your instance → **Query** 
+
+2. Copy the contents of Cypher.txt and run it in the Neo4j Browser 
+
+3. Verify with: MATCH (n) RETURN labels(n), count(n) ORDER BY count(n) DESC 
+
+## **Step 2 — Configure Environment Variables** 
+
+Copy backend/.env.example to backend/.env and fill in: 
+
+NEO4J_URI=neo4j+s://XXXXXXXX.databases.neo4j.io   # From AuraDB console → Connect 
+
+NEO4J_USER=neo4j NEO4J_PASSWORD=your-aura-password 
+
+FEATHERLESS_API_KEY=fl-your-key-here               # From featherless.ai → API Keys FEATHERLESS_MODEL=Qwen/Qwen2.5-7B-Instruct 
+
+MASUMI_API_KEY=                                    # Leave blank for demo mode MASUMI_DEV_MODE=true 
+
+MIFUGOIQ_CALLBACK_URL=https://your-backend.railway.app/api/masumi/report 
+
+## **Step 3 — Deploy Backend to Railway** 
+
+# Option A: Railway CLI railway login railway init railway up --service backend 
+
+# Option B: Railway dashboard 
+
+# New Project → Deploy from GitHub → select backend/ as root directory 
+
+# Add environment variables from Step 2 
+
+# Deploy → copy your URL (e.g. https://mifugoiq-backend-production.railway.app) 
+
+Test the deployment: 
+
+curl https://your-backend.railway.app/api/health 
+
+# Expected: {"status":"ok","service":"MifugoIQ"} 
+
+curl -X POST https://your-backend.railway.app/api/chat \ 
+
+- -H "Content-Type: application/json" \ 
+
+- -d '{"query":"What is the price of a Boran steer in Kajiado?"}' 
+
+## **Step 4 — Connect Lovable** 
+
+1. In Lovable: Files → src/ → create folder services/ → new file mifugoiq.ts → paste contents of lovable/mifugoiq.ts 
+
+2. Create src/components/Chat.tsx → paste lovable/Chat.tsx 
+
+3. Create src/components/MasumiDemo.tsx → paste lovable/MasumiDemo.tsx 
+
+4. **Project Settings → Environment Variables** → VITE_API_URL = your Railway URL 
+
+5. Use components in your pages: import Chat from "../components/Chat" 
+
+## **Local Development** 
+
+cd backend pip install -r requirements.txt cp .env.example .env        # fill in your keys uvicorn main:app --reload   # runs on http://localhost:8000 
+
+## **Troubleshooting** 
+
+|**roubleshooting**|||
+|---|---|---|
+|**Symptom**|**Cause**|**Fix**|
+|401 Unauthorized|Wrong API key|Re-copy from featherless.ai|
+|from Featherless||dashboard — starts withfl-|
+|ServiceUnavailable|AuraDB paused (free tier|Wake it at console.neo4j.io|
+|from Neo4j|idles after 3 days)||
+|Model not found (404|Wrong model name|Check exact name at|
+|from Featherless)||featherless.ai/models — case-|
+|||sensitive|
+|"No data available"|Query outside seeded|Demo queries must use Kajiado,|
+|answer|counties|Nairobi, or Machakos|
+|Lovable can't reach|Wrong VITE_API_URL|Must not have trailing slash;|
+|backend||CORS is open*|
+|Masumi payment fails|Real payment mode with|SetMASUMI_DEV_MODE=truefor|
+||unfunded wallet|demo|
+
+
+
+## **12. Demo Script — Three Personas** 
+
+The demo is built around three personas whose problems connect sequentially across the value chain — reinforcing that MifugoIQ is one connected intelligence layer, not three disconnected features. 
+
+## **Persona 1 — Wanjiku, smallholder herder, Kajiado** 
+
+_"Nimefika Kiserian leo na ng'ombe zangu 15, lakini sijui ni wapi nitapata bei nzuri zaidi" (I've arrived at Kiserian today with my 15 cattle, but I don't know where I'll get the best price)_ 
+
+## **Demo query (Kiswahili):** 
+
+"Ni bei gani ya ng'ombe wa Boran miaka 2–3 huko Kajiado, na wapi niuze vizuri zaidi?" 
+
+**What to show:** The agent detects Kiswahili, runs the NRV multi-hop query, returns a ranked market comparison (Kiserian vs Dagoretti vs Narok) with net prices after transport, responds in Kiswahili with NDMA source citation. Click to Price Explorer to show the visual heatmap. 
+
+**API shortcut:** GET /api/nrv?breed=Boran&age_class=Store(23yr)&origin_county=Kajiado 
+
+## **Persona 2 — Joseph, feedlot operator, Machakos** 
+
+_"If I buy Wanjiku's steers and finish them over 90 days, what will my feed cost be, and what margin can I expect?"_ 
+
+## **Demo query (English):** 
+
+"What would a 90-day finishing programme for 15 Boran store steers cost near Machakos?" 
+
+**What to show:** The agent queries FeedProduct/FeedSupplier nodes, returns a feed cost breakdown (roughage + concentrate + mineral lick), calculates cost-per-kg-gained. Show the graph view with the Machakos → feedlot → feed supplier connections lighting up. 
+
+**API shortcut:** GET /api/feed?county=Machakos 
+
+## **Persona 3 — Amina, SACCO loan officer (Masumi Demo)** 
+
+_"Joseph has applied for KSh 400,000 working capital secured by his 15 finished Boran steers in Machakos. My underwriting agent needs a defensible valuation."_ 
+
+**Demo action:** Open the **Masumi Demo tab** in the Lovable app → set 15 head, Boran, Machakos → click **Run Agent-to-Agent Demo** 
+
+**What to show:** The 5-step flow panel populates in real time: 
+
+- Step 1: Payment invoice generated (0.50 USDM) 
+
+- Step 2: Payment reference created 
+
+- Step 3: Payment confirmed ✅ 
+
+- Step 4: Collateral Valuation Report (NRV, risk flag, source) 
+
+- Step 5: APPROVE — loan limit KES 414,375 at 65% LTV 
+
+**This closes the AgriFin loop:** The graph that started with Wanjiku's herd price has produced a defensible, auditable, source-cited loan underwriting decision — in seconds, not days. 
+
+**API shortcut:** GET /api/masumi/demo?breed=Boran&age_class=Store(23yr)&head=15&county=Machakos 
+
+## **Pre-Demo Checklist** 
+
+- [ ] Neo4j AuraDB instance is awake (ping /api/health) 
+
+- [ ] All 3 demo queries tested and returning data 
+
+- [ ] Masumi demo flow runs in under 10 seconds 
+
+- [ ] Lovable app open on phone + laptop browser 
+
+- [ ] Screenshots of all 3 query results saved as Wi-Fi contingency backup 
+
+- [ ] Featherless model responding in both English and Kiswahili 
+
+## **13. Phase 2 Roadmap** 
+
+Phase 1 is a complete intelligence product. Phase 2 — **MifugoIQ Connect** — turns the same graph into a transactional marketplace. Every Phase 1 node type, relationship, and API endpoint is designed to be marketplace-ready without structural rework. 
+
+|**Feature**|**What Phase 2 Adds**|**Phase 1 Foundation It Reuses**|
+|---|---|---|
+|**Listings &**|Listingnodes on|All existing actor nodes and|
+|**matching**|Producer/Feedlot/Buyer; graph-|relationships|
+||powered matching||
+|**Truckers'**|Verified Transporter onboarding, rate|Transporternodes +|
+|**association**|cards, booking requests|SERVICESrelationships|
+|**Live GPS**|"Uber-style" status updates on|Transporter+Routenodes|
+|**tracking**|booked jobs||
+|**Escrowed**|Masumi-based escrow released on|Same Masumi integration,|
+|**payments**|delivery confirmation|extended from "pay-per-report" to|
+|||"pay-into-escrow"|
+|**Credit**|Transaction history as verifiable credit|All marketplace activity stored as|
+
+
+
+|**footprint**|data for SMEs|newPayment/Bookingnodes in|
+|---|---|---|
+|||Neo4j|
+|**Index**|Price time-series licensed as|PriceObservationtime series|
+|**insurance**|underlying index for livestock price-|already structured for this|
+||risk products||
+
+
+
+**Revenue model (Phase 1 + 2):** 
+
+|**Stream**|**Customer**|**Mechanism**|
+|---|---|---|
+|Pay-per-intelligence-|MFIs, SACCOs, banks, insurers|Masumi-metered agent service|
+|report||(live in Phase 1)|
+|Directory|Feed suppliers,|Featured placement in Lovable|
+|sponsorship|slaughterhouses, agrovets|directories|
+|Marketplace|All value chain actors|Small % on Masumi-escrowed|
+|transaction fee||transactions|
+|Truckers'|Transporters|Subscription for verified status +|
+|association SaaS||booking access|
+|Data licensing / API|Researchers, county|Bulk access to anonymised price|
+||governments, exporters|time-series|
+
+
+
+
+
+
+
 Repository Structure
 MifugoIQ
 
