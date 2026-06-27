@@ -75,7 +75,7 @@ LIMIT 50
 
 
 
-### 4.1 Net Realizable Value (NRV) & Market Routing
+### 4.2 Net Realizable Value (NRV) & Market Routing
 *Used by financial underwriters and producers to determine the true value of an asset after logistical deductions.*
 
 ```cypher
