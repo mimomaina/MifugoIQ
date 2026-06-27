@@ -80,37 +80,44 @@ traversal — not the LLM — does the reasoning. The LLM only composes the answ
 
 ## **3. System Architecture** 
 
-┌──────────────────────────────────────────────────────── 
-
-─────┐ │                     DATA SOURCES                            │ 
-
-│  NDMA Bulletins · KNBS Stats · DVS Registry · KMC Prices   │ 
-
-│  Feed Manufacturer Lists · Transport Rate Surveys           │ 
-
-└─────────────────────┬────────────────────────────────── ─────┘ 
-
-│ CSV / PDF ingestion ▼ ┌──────────────────────────────────────────────────────── 
-
-─────┐ │              KNOWLEDGE GRAPH LAYER                          │ │                  Neo4j AuraDB                               │ 
-
-│  County · Market · Breed · AnimalClass · PriceObservation   │ 
-
-│  Slaughterhouse · Transporter · FeedProduct · FrictionMetric│ 
-
-│  (Cypher.txt — schema + seed scripts)                       │ └─────────────────────┬────────────────────────────────── ─────┘ 
-
-│ Cypher queries ▼ 
-
-┌──────────────────────────────────────────────────────── ─────┐ │              GRAPHRAG REASONING LAYER                       │ 
-
-│              FastAPI Backend (backend/)                     │ 
-
-│                                                             │ │  agent.py          — Intent detection → Cypher template     │ │ → Neo4j → Featherless LLM → answer    │ │  cypher_templates.py — Parameterized query library          │ │  neo4j_client.py   — AuraDB connection wrapper              │ │  main.py           — 7 REST endpoints                       │ │  masumi.py         — Agent registration + payment rail      │ └────────────┬────────────────────────┬────────────────── ─────┘ │ /api/chat              │ /api/masumi/report ▼                        ▼ ┌────────────────────┐ ┌───────────────────────────────────┐ │  LOVABLE FRONTEND  │    │        MASUMI AGENT NETWORK       │ │  mifugoiq1.lovable │    │  MifugoIQ registered as paid      │ │  .app              │    │  agent service (ADA/USDM per      │ │                    │    │  report). Demo: AgriFin Lender    │ 
-
-│  Chat.tsx                Agent │ │ → pays → gets Collateral   │ │  MasumiDemo.tsx          Valuation Report │ │ → loan decision │ │  mifugoiq.ts       │    │                                   │ └────────────────────┘ 
-
-└───────────────────────────────────┘ 
+┌─────────────────────────────────────────────────────────────┐
+│                        DATA SOURCES                         │
+│  NDMA Bulletins · KNBS Stats · DVS Registry · KMC Prices    │
+│  Feed Manufacturer Lists · Transport Rate Surveys           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ CSV / PDF ingestion
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  KNOWLEDGE GRAPH LAYER                      │
+│                       Neo4j AuraDB                          │
+│  County · Market · Breed · AnimalClass · PriceObservation   │
+│  Slaughterhouse · Transporter · FeedProduct · FrictionMetric│
+│  (Cypher.txt — schema + seed scripts)                       │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Cypher queries
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                GRAPHRAG REASONING LAYER                     │
+│                  FastAPI Backend (backend/)                 │
+│                                                             │
+│  agent.py          — Intent detection → Cypher template     │
+│                       → Neo4j → Featherless LLM → answer    │
+│  cypher_templates.py — Parameterized query library          │
+│  neo4j_client.py   — AuraDB connection wrapper              │
+│  main.py           — 7 REST endpoints                       │
+│  masumi.py         — Agent registration + payment rail      │
+└────────────┬────────────────────────┬───────────────────────┘
+             │ /api/chat              │ /api/masumi/report
+             ▼                        ▼
+┌────────────────────┐    ┌───────────────────────────────────┐
+│  LOVABLE FRONTEND  │    │        MASUMI AGENT NETWORK       │
+│  mifugoiq1.lovable │    │  MifugoIQ registered as paid      │
+│  .app              │    │  agent service (ADA/USDM per      │
+│                    │    │  report). Demo: AgriFin Lender    │
+│  Chat.tsx          │    │  Agent → pays → gets Collateral   │
+│  MasumiDemo.tsx    │    │  Valuation Report → loan decision │
+│  mifugoiq.ts       │    │                                   │
+└────────────────────┘    └───────────────────────────────────┘
 
 ## **Technology Stack:** 
 
@@ -122,11 +129,39 @@ Graph **Neo4j AuraDB** Stores the entire value chain as a database connected, qu
 
 ## **4. Repository Structure** 
 
-MifugoIQ/ │ ├── 📁 April_NDMA/                    # NDMA Early Warning Bulletin — April 2026 ├── 📁 May_NDMA/                      # NDMA Early Warning Bulletin — May 2026 ├── 📁 June_NDMA/                     # NDMA Early Warning Bulletin — June 2026 │ ├── 📁 prices.csv                     # Time-series livestock price observations │                                     # (county, market, breed, age class, KES, date, source) ├── 📁 marketandzone.csv              # Markets mapped to counties & livelihood zones │                                     # (Pastoral / Agro-Pastoral / Mixed Farming) ├── 📁 Approvedexportslaughterhouses.csv  # DVS-registered export abattoir directory │                                         # (name, county, Halal status, capacity) ├── 📁 feed_prices_mkulima_bora.csv.csv   # Feed & supplement pricing benchmarks │                                         # (product, category, KES/kg, supplier) ├── 📁 transport_benchmarks.csv.csv   # Livestock transport cost benchmarks 
-
-│                                     # (route, vehicle type, KES/head) ├── 📁 friction_metrics.csv.csv       # Biophysical risk metrics │   friction_metrics.csv.txt          # (VCI, water trek km, BCS, date, county) │ ├── ★ Cypher.txt                     # 📁Master Neo4j schema, constraints & seed scripts │ ├── ★ bF **a** ckend/                       # 📁stAPI backend — GraphRAG + Featherless + Masumi │   ├── main.py                       # API server (7 endpoints) │├── agent.py                      # GraphRAG pipeline (intent → Cypher → LLM → answer) │   ├── cypher_templates.py           # Parameterized Cypher query library │   ├── neo4j_client.py               # Neo4j AuraDB connection wrapper │   ├── masumi.py                     # Agent registration, payments & demo flow │   ├── requirements.txt              # Python dependencies │   ├── Procfile                      # Railway/Render deployment start command │   └── .env.example                  # Environment variable template │ ├── ★ lovable/                       # 📁Lovable frontend integration files │├── mifugoiq.ts                   # API service layer (paste → src/services/) │   ├── Chat.tsx                      # Bilingual chat UI component │   └── MasumiDemo.tsx                # Interactive Masumi agent-to-agent demo │ ├── ★ INTEGRATION_GUIDE.md           # 📁Deployment & setup guide (keys, steps, debug) ├── 📁 .gitignore └── 📁 README.md                      # This file 
-
-Files marked ★ are the primary technical references for each subsystem. 
+MifugoIQ/
+│
+├── 📁 April_NDMA/                              # NDMA Early Warning Bulletin — April 2026
+├── 📁 May_NDMA/                                # NDMA Early Warning Bulletin — May 2026
+├── 📁 June_NDMA/                               # NDMA Early Warning Bulletin — June 2026
+│
+├── 📄 prices.csv                               # Time-series livestock price observations
+├── 📄 marketandzone.csv                        # Markets mapped to counties & livelihood zones
+├── 📄 Approvedexportslaughterhouses.csv        # DVS-registered export abattoir directory
+├── 📄 feed_prices_mkulima_bora.csv             # Feed & supplement pricing benchmarks
+├── 📄 transport_benchmarks.csv                 # Livestock transport cost benchmarks
+├── 📄 friction_metrics.csv                     # Biophysical risk metrics (VCI, water trek km, BCS)
+│
+├── 📄 Cypher.txt                               # ★ Master Neo4j schema, constraints & seed scripts
+│
+├── 📁 backend/                                 # ★ FastAPI backend — GraphRAG + Featherless + Masumi
+│   ├── 📄 main.py                              # API server (7 endpoints)
+│   ├── 📄 agent.py                             # GraphRAG pipeline (intent → Cypher → LLM → answer)
+│   ├── 📄 cypher_templates.py                  # Parameterized Cypher query library
+│   ├── 📄 neo4j_client.py                      # Neo4j AuraDB connection wrapper
+│   ├── 📄 masumi.py                            # Agent registration, payments & demo flow
+│   ├── 📄 requirements.txt                     # Python dependencies
+│   ├── 📄 Procfile                             # Railway/Render deployment start command
+│   └── 📄 .env.example                         # Environment variable template
+│
+├── 📁 lovable/                                 # ★ Lovable frontend integration files
+│   ├── 📄 mifugoiq.ts                          # API service layer (paste → src/services/)
+│   ├── 📄 Chat.tsx                             # Bilingual chat UI component
+│   └── 📄 MasumiDemo.tsx                       # Interactive Masumi agent-to-agent demo
+│
+├── 📄 INTEGRATION_GUIDE.md                     # ★ Deployment & setup guide (keys, steps, debug)
+├── 📄 .gitignore
+└── 📄 README.md                                # This file
 
 ## **5. Data Layer — Sources & Ingestion** 
 
