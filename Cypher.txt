@@ -1,16 +1,26 @@
-// 1. SCHEMA: CONSTRAINTS & INDEXES
-CREATE CONSTRAINT county_name IF NOT EXISTS FOR (c:County) REQUIRE c.name IS UNIQUE;
-CREATE CONSTRAINT market_name IF NOT EXISTS FOR (m:Market) REQUIRE m.name IS UNIQUE;
-CREATE CONSTRAINT breed_name IF NOT EXISTS FOR (b:Breed) REQUIRE b.name IS UNIQUE;
-CREATE CONSTRAINT animal_class_type IF NOT EXISTS FOR (a:AnimalClass) REQUIRE a.type IS UNIQUE;
-CREATE CONSTRAINT slaughterhouse_name IF NOT EXISTS FOR (s:Slaughterhouse) REQUIRE s.name IS UNIQUE;
-CREATE CONSTRAINT transporter_name IF NOT EXISTS FOR (t:Transporter) REQUIRE t.name IS UNIQUE;
-CREATE CONSTRAINT feed_product_name IF NOT EXISTS FOR (f:FeedProduct) REQUIRE f.name IS UNIQUE;
-
-// 2. GEOGRAPHY: COUNTIES & MARKETS
+// ===== 1. COUNTIES =====
 MERGE (kajiado:County {name: 'Kajiado', region: 'Rift Valley'})
 MERGE (nairobi:County {name: 'Nairobi', region: 'Peri-Urban'})
 MERGE (machakos:County {name: 'Machakos', region: 'Eastern'})
+
+// ===== 2. BREEDS =====
+MERGE (boran:Breed {name: 'Boran', originType: 'Improved Beef'})
+MERGE (zebu:Breed {name: 'Zebu', originType: 'Indigenous'})
+MERGE (sahiwal:Breed {name: 'Sahiwal-cross', originType: 'Cross'})
+
+// ===== 3. ANIMAL CLASSES (linked to breeds in same statement) =====
+MERGE (boran_steer:AnimalClass {ageClass: 'Store(2-3yr)', sex: 'Steer', bodyConditionScore: 3})
+MERGE (boran_steer)-[:OF_BREED]->(boran)
+
+MERGE (zebu_bull:AnimalClass {ageClass: 'Mature(3+yr)', sex: 'Bull', bodyConditionScore: 3})
+MERGE (zebu_bull)-[:OF_BREED]->(zebu)
+
+MERGE (boran_finished:AnimalClass {ageClass: 'Finished(3+yr)', sex: 'Steer', bodyConditionScore: 4})
+MERGE (boran_finished)-[:OF_BREED]->(boran)
+
+// ===== 4. MARKETS (linked to counties in same statement) =====
+MERGE (kiserian:Market {name: 'Kiserian', marketType: 'Primary Auction'})
+MERGE (kiserian)-[:LOCATED_IN]->(kajiado)
 
 MERGE (ewuaso:Market {name: 'Ewuaso', marketType: 'Pastoral Local'})
 MERGE (ewuaso)-[:LOCATED_IN]->(kajiado)
@@ -18,131 +28,90 @@ MERGE (ewuaso)-[:LOCATED_IN]->(kajiado)
 MERGE (kaputiei:Market {name: 'Kaputiei North', marketType: 'Agro-Pastoral'})
 MERGE (kaputiei)-[:LOCATED_IN]->(kajiado)
 
-MERGE (dalalekutuk:Market {name: 'Dalalekutuk', marketType: 'Agro-Pastoral'})
-MERGE (dalalekutuk)-[:LOCATED_IN]->(kajiado)
-
-MERGE (mbirikani:Market {name: 'Mbirikani', marketType: 'Pastoral Local'})
-MERGE (mbirikani)-[:LOCATED_IN]->(kajiado)
-
-MERGE (loitoktok:Market {name: 'Loitoktok', marketType: 'Mixed Farming'})
-MERGE (loitoktok)-[:LOCATED_IN]->(kajiado)
-
-MERGE (kiserian:Market {name: 'Kiserian', marketType: 'Primary Auction'})
-MERGE (kiserian)-[:LOCATED_IN]->(kajiado)
-
 MERGE (dagoretti:Market {name: 'Dagoretti', marketType: 'Terminal Slaughter'})
 MERGE (dagoretti)-[:LOCATED_IN]->(nairobi)
 
 MERGE (athiriver:Market {name: 'KMC Athi River', marketType: 'Export Slaughter'})
 MERGE (athiriver)-[:LOCATED_IN]->(machakos)
 
-// 3. BREEDS & ANIMAL CLASSES
-MERGE (boran:Breed {name: 'Boran', originType: 'Improved Beef'})
-MERGE (zebu:Breed {name: 'Zebu', originType: 'Indigenous'})
-MERGE (sahiwal:Breed {name: 'Sahiwal-cross', originType: 'Cross'})
+// ===== 5. PRICE OBSERVATIONS (linked to AnimalClass AND Market in same statement) =====
+// Boran Steer @ Kiserian - May 2026
+CREATE (p1:PriceObservation {priceKES: 48000, date: date('2026-05-01'), source: 'NDMA May 2026'})
+MERGE (boran_steer)-[:PRICED_AT]->(p1)-[:RECORDED_AT]->(kiserian)
 
-MERGE (steer_store:AnimalClass {type: 'Steer', ageClass: 'Store(2-3yr)', sex: 'Male', bodyConditionScore: 3})
-MERGE (steer_store)-[:OF_BREED]->(boran)
+// Boran Steer @ Kaputiei North - May 2026 (higher price, better breed quality)
+CREATE (p2:PriceObservation {priceKES: 65000, date: date('2026-05-01'), source: 'NDMA May 2026'})
+MERGE (boran_steer)-[:PRICED_AT]->(p2)-[:RECORDED_AT]->(kaputiei)
 
-MERGE (bull_mature:AnimalClass {type: 'Bull', ageClass: 'Mature(3+yr)', sex: 'Male', bodyConditionScore: 3})
-MERGE (bull_mature)-[:OF_BREED]->(zebu)
+// Zebu Bull @ Ewuaso - April 2026 (lower price, pastoral zone)
+CREATE (p3:PriceObservation {priceKES: 32000, date: date('2026-04-01'), source: 'NDMA April 2026'})
+MERGE (zebu_bull)-[:PRICED_AT]->(p3)-[:RECORDED_AT]->(ewuaso)
 
-// 4. PRICE OBSERVATIONS (NDMA DATA FEBRUARY 2026)
-CREATE (p_feb_ewuaso:PriceObservation {priceKES: 20000, date: date('2026-02-28'), source: 'NDMA Feb 2026'})
-MERGE (steer_store)-[:PRICED_AT]->(p_feb_ewuaso)-[:RECORDED_AT]->(ewuaso)
+// Boran Finished @ Dagoretti - May 2026 (destination market)
+CREATE (p4:PriceObservation {priceKES: 95000, date: date('2026-05-01'), source: 'KMC Reference'})
+MERGE (boran_finished)-[:PRICED_AT]->(p4)-[:RECORDED_AT]->(dagoretti)
 
-CREATE (p_feb_kaputiei:PriceObservation {priceKES: 50000, date: date('2026-02-28'), source: 'NDMA Feb 2026'})
-MERGE (steer_store)-[:PRICED_AT]->(p_feb_kaputiei)-[:RECORDED_AT]->(kaputiei)
+// Boran Finished @ KMC Athi River - May 2026
+CREATE (p5:PriceObservation {priceKES: 92000, date: date('2026-05-01'), source: 'KMC Reference'})
+MERGE (boran_finished)-[:PRICED_AT]->(p5)-[:RECORDED_AT]->(athiriver)
 
-CREATE (p_feb_avg:PriceObservation {priceKES: 37190, date: date('2026-02-28'), source: 'NDMA Feb 2026'})
-MERGE (bull_mature)-[:PRICED_AT]->(p_feb_avg)-[:RECORDED_AT]->(kajiado)
+// ===== 6. TRANSPORTERS (linked to counties in same statement) =====
+MERGE (trans1:Transporter {name: 'Kajiado Livestock Haulers', vehicleType: '10-ton', costBenchmarkKES: 1500})
+MERGE (trans1)-[:SERVICES]->(kajiado)
+MERGE (trans1)-[:SERVICES]->(nairobi)
 
-// 5. PRICE OBSERVATIONS (NDMA DATA APRIL 2026)
-CREATE (p_apr_ewuaso:PriceObservation {priceKES: 32000, date: date('2026-04-30'), source: 'NDMA Apr 2026'})
-MERGE (bull_mature)-[:PRICED_AT]->(p_apr_ewuaso)-[:RECORDED_AT]->(ewuaso)
+MERGE (trans2:Transporter {name: 'Eastern Cattle Logistics', vehicleType: '15-ton', costBenchmarkKES: 800})
+MERGE (trans2)-[:SERVICES]->(kajiado)
+MERGE (trans2)-[:SERVICES]->(machakos)
 
-CREATE (p_apr_avg:PriceObservation {priceKES: 45952, date: date('2026-04-30'), source: 'NDMA Apr 2026'})
-MERGE (steer_store)-[:PRICED_AT]->(p_apr_avg)-[:RECORDED_AT]->(kajiado)
-
-// 6. PRICE OBSERVATIONS (NDMA DATA MAY 2026)
-CREATE (p_may_dalalekutuk:PriceObservation {priceKES: 34000, date: date('2026-05-31'), source: 'NDMA May 2026'})
-MERGE (bull_mature)-[:PRICED_AT]->(p_may_dalalekutuk)-[:RECORDED_AT]->(dalalekutuk)
-
-CREATE (p_may_kaputiei:PriceObservation {priceKES: 65000, date: date('2026-05-31'), source: 'NDMA May 2026'})
-MERGE (steer_store)-[:PRICED_AT]->(p_may_kaputiei)-[:RECORDED_AT]->(kaputiei)
-
-CREATE (p_may_avg:PriceObservation {priceKES: 46000, date: date('2026-05-31'), source: 'NDMA May 2026'})
-MERGE (steer_store)-[:PRICED_AT]->(p_may_avg)-[:RECORDED_AT]->(kajiado)
-
-// 7. SLAUGHTERHOUSES (DVS APPROVED LIST)
-MERGE (farmers_choice:Slaughterhouse {name: 'Farmers Choice Limited', location: 'Kahawa West, Nairobi', halalCertified: true, capacityHeadPerDay: 400})
-MERGE (farmers_choice)-[:LOCATED_IN]->(nairobi)
-
-MERGE (choice_meat:Slaughterhouse {name: 'Choice Meat Limited', location: 'Kahawa West, Nairobi', halalCertified: true, capacityHeadPerDay: 400})
-MERGE (choice_meat)-[:LOCATED_IN]->(nairobi)
-
-MERGE (kenmeat:Slaughterhouse {name: 'KenMeat Ltd', location: 'EPZ Athi River', halalCertified: true, capacityHeadPerDay: 300})
-MERGE (kenmeat)-[:LOCATED_IN]->(machakos)
-
-MERGE (kmc:Slaughterhouse {name: 'Kenya Meat Commission', location: 'Athi River', halalCertified: true, capacityHeadPerDay: 1000})
+// ===== 7. SLAUGHTERHOUSES (linked to counties in same statement) =====
+MERGE (kmc:Slaughterhouse {name: 'Kenya Meat Commission', capacityHeadPerDay: 1000, halalCertified: true, slaughterFeeKES: 300})
 MERGE (kmc)-[:LOCATED_IN]->(machakos)
 
-MERGE (qmp:Slaughterhouse {name: 'Quality Meat Packers', location: 'Kangundo Road, Nairobi', halalCertified: true, capacityHeadPerDay: 300})
-MERGE (qmp)-[:LOCATED_IN]->(nairobi)
-
-MERGE (neema:Slaughterhouse {name: 'Neema Livestock and Slaughtering Investments', location: 'Lucky Summer, Nairobi', halalCertified: false, capacityHeadPerDay: 150})
-MERGE (neema)-[:LOCATED_IN]->(nairobi)
-
-MERGE (kenchic:Slaughterhouse {name: 'Kenchic Limited', location: 'Ngoliba along Thika-Garissa Road', halalCertified: true, capacityHeadPerDay: 500})
-MERGE (kenchic)-[:LOCATED_IN]->(nairobi)
-
-MERGE (dagoretti_abattoir:Slaughterhouse {name: 'Dagoretti Municipal Abattoir', location: 'Nairobi', halalCertified: false, capacityHeadPerDay: 500})
+MERGE (dagoretti_abattoir:Slaughterhouse {name: 'Dagoretti Municipal Abattoir', capacityHeadPerDay: 500, halalCertified: false, slaughterFeeKES: 250})
 MERGE (dagoretti_abattoir)-[:LOCATED_IN]->(nairobi)
 
-// 8. FEED PRODUCTS & SUPPLIERS
-MERGE (dairy_meal:FeedProduct {name: 'Dairy Meal (20kg)', category: 'Concentrate', priceKES: 4100})
-MERGE (maize_bran:FeedProduct {name: 'Maize Bran (20kg)', category: 'Roughage', priceKES: 1300})
-MERGE (mineral_lick:FeedProduct {name: 'Mineral Lick Block (5kg)', category: 'Supplement', priceKES: 850})
-MERGE (napier_silage:FeedProduct {name: 'Napier Grass Silage (per kg)', category: 'Roughage', priceKES: 15})
+MERGE (qmp:Slaughterhouse {name: 'Quality Meat Packers', capacityHeadPerDay: 300, halalCertified: true, slaughterFeeKES: 350})
+MERGE (qmp)-[:LOCATED_IN]->(nairobi)
 
-MERGE (unga_group:FeedSupplier {name: 'Unga Group Agrovets', type: 'Manufacturer'})
-MERGE (local_agrovet:FeedSupplier {name: 'County Agrovets', type: 'Agrovet'})
+// 1. ADD SLAUGHTERHOUSES (From your DVS PDF)
+MERGE (dagoretti_abattoir:Slaughterhouse {name: 'Dagoretti Municipal Abattoir', halalCertified: false, slaughterFeeKES: 250})
+MERGE (nairobi:County {name: 'Nairobi'})
+MERGE (dagoretti_abattoir)-[:LOCATED_IN]->(nairobi)
 
-MERGE (dairy_meal)-[:SUPPLIED_BY]->(unga_group)
-MERGE (maize_bran)-[:SUPPLIED_BY]->(unga_group)
-MERGE (mineral_lick)-[:SUPPLIED_BY]->(local_agrovet)
-MERGE (napier_silage)-[:SUPPLIED_BY]->(local_agrovet)
+MERGE (kmc:Slaughterhouse {name: 'KMC Athi River', halalCertified: true, slaughterFeeKES: 300})
+MERGE (machakos:County {name: 'Machakos'})
+MERGE (kmc)-[:LOCATED_IN]->(machakos)
 
-// 9. TRANSPORTERS & LOGISTICS
-MERGE (trans_nairobi:Transporter {name: 'Kajiado Livestock Haulers', vehicleType: '10-ton truck', costBenchmarkKES: 1500})
-MERGE (trans_nairobi)-[:SERVICES]->(kajiado)
-MERGE (trans_nairobi)-[:SERVICES]->(nairobi)
+MERGE (qmp:Slaughterhouse {name: 'Quality Meat Packers', halalCertified: true, slaughterFeeKES: 350})
+MERGE (qmp)-[:LOCATED_IN]->(nairobi)
 
-MERGE (trans_machakos:Transporter {name: 'Eastern Cattle Logistics', vehicleType: '15-ton truck', costBenchmarkKES: 800})
-MERGE (trans_machakos)-[:SERVICES]->(kajiado)
-MERGE (trans_machakos)-[:SERVICES]->(machakos)
+// 2. ADD TRANSPORTERS (Mocked Benchmarks)
+MERGE (trans1:Transporter {name: 'Kajiado Livestock Haulers', vehicleType: '10-ton', costBenchmarkKES: 1500})
+MERGE (trans1)-[:SERVICES]->(nairobi)
+MERGE (trans1)-[:SERVICES]->(kajiado:County {name: 'Kajiado'})
 
-// 10. FRICTION & BIOPHYSICAL METRICS (NDMA)
-CREATE (fm_feb_water:FrictionMetric {type: 'Livestock Water Trek', value: 4.9, unit: 'km', date: date('2026-02-28'), source: 'NDMA Feb 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_feb_water)
+MERGE (trans2:Transporter {name: 'Eastern Cattle Logistics', vehicleType: '15-ton', costBenchmarkKES: 800})
+MERGE (trans2)-[:SERVICES]->(machakos)
+MERGE (trans2)-[:SERVICES]->(kajiado)
 
-CREATE (fm_feb_vci:FrictionMetric {type: 'VCI (Vegetation Condition)', value: 26.0, unit: 'index', date: date('2026-02-28'), source: 'NDMA Feb 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_feb_vci)
+// 3. ADD BREEDS & ANIMAL CLASSES (The core of MifugoIQ)
+MERGE (boran:Breed {name: 'Boran', originType: 'Improved Beef'})
+MERGE (zebu:Breed {name: 'Zebu', originType: 'Indigenous'})
 
-CREATE (fm_apr_water:FrictionMetric {type: 'Livestock Water Trek', value: 2.4, unit: 'km', date: date('2026-04-30'), source: 'NDMA Apr 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_apr_water)
+MERGE (steer_store:AnimalClass {ageClass: 'Store(2-3yr)', sex: 'Steer', bodyConditionScore: 3})
+MERGE (steer_store)-[:OF_BREED]->(boran)
 
-CREATE (fm_apr_vci:FrictionMetric {type: 'VCI (Vegetation Condition)', value: 66.6, unit: 'index', date: date('2026-04-30'), source: 'NDMA Apr 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_apr_vci)
+MERGE (bull_mature:AnimalClass {ageClass: 'Mature(3+yr)', sex: 'Bull', bodyConditionScore: 3})
+MERGE (bull_mature)-[:OF_BREED]->(zebu)
 
-CREATE (fm_may_water:FrictionMetric {type: 'Livestock Water Trek', value: 3.2, unit: 'km', date: date('2026-05-31'), source: 'NDMA May 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_may_water)
+// 4. LINK PRICES TO THE GRAPH (The "Wanjiku" Demo Data)
+// Boran Steer @ Kaputiei North - May 2026 (65,000 KES)
+CREATE (p1:PriceObservation {priceKES: 65000, date: date('2026-05-01'), source: 'NDMA May 2026'})
+MERGE (kaputiei:Market {name: 'Kaputiei North'})
+MERGE (steer_store)-[:PRICED_AT]->(p1)-[:RECORDED_AT]->(kaputiei)
 
-CREATE (fm_may_vci:FrictionMetric {type: 'VCI (Vegetation Condition)', value: 50.0, unit: 'index', date: date('2026-05-31'), source: 'NDMA May 2026'})
-MERGE (kajiado)-[:HAS_METRIC]->(fm_may_vci)
-
-// 11. FINAL OUTPUT: VISUALIZE THE GRAPH
-MATCH (n)
-OPTIONAL MATCH (n)-[r]->(m)
-RETURN n, r, m
-LIMIT 100
+// Zebu Bull @ Ewuaso - April 2026 (32,000 KES)
+CREATE (p2:PriceObservation {priceKES: 32000, date: date('2026-04-01'), source: 'NDMA April 2026'})
+MERGE (ewuaso:Market {name: 'Ewuaso'})
+MERGE (bull_mature)-[:PRICED_AT]->(p2)-[:RECORDED_AT]->(ewuaso)
