@@ -106,7 +106,8 @@ RETURN
         WHEN f.value > 3.0 THEN 'Moderate Risk: Standard LTV'
         ELSE 'Low Risk: Premium LTV'
     END AS underwritingRecommendation;
-```## **7. GraphRAG Agent — Featherless** 
+```
+## **7. GraphRAG Agent — Featherless** 
 
 ## **7.1 Pipeline** 
 
