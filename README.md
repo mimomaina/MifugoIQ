@@ -59,7 +59,18 @@ The graph is structured to support complex, multi-hop GraphRAG traversals requir
 
 ## 4. Expected Graph Outputs & Flagship Queries
 The architecture is specifically optimized for multi-hop GraphRAG reasoning. Below are the core Cypher query patterns that power the MifugoIQ intelligence layer.
+### 4.1 Visualise graph connections
 
+```cypher
+CALL db.schema.visualization()
+```
+<img width="1140" height="532" alt="image" src="https://github.com/user-attachments/assets/67d49bc4-53b5-48ce-b441-a0a6d7fb91b0" />
+
+```cypher
+MATCH (n)-[r]->(m)
+RETURN n, r, m
+LIMIT 50
+```
 <img width="1195" height="551" alt="image" src="https://github.com/user-attachments/assets/8c7e046d-8094-43ec-b6bf-e7d7540e66f9" />
 
 
