@@ -1,138 +1,376 @@
-# MifugoIQ: Knowledge-Graph-Powered Market Intelligence Engine
+## **MifugoIQ 🐄** 
 
-Market Intelligence & Collateral Valuation Architecture
----
+## **Kenya's Cattle Value Chain — Knowledge-Graph Intelligence Engine** 
 
-## 1. Executive Summary
-MifugoIQ is an enterprise-grade, knowledge-graph-powered intelligence layer designed to map, structure, and query the entirety of Kenya’s beef and cattle value chain. By integrating fragmented institutional data into a unified Neo4j graph database and exposing it via a GraphRAG-enabled conversational agent, MifugoIQ provides authoritative, location-specific, and breed-specific market intelligence. 
+**Kenya AI Challenge 2026 · AgriFin Track · Mercy Corps AgriFin Network** Built for the Neo4j · Featherless · Lovable · Masumi technology tracks 
 
-This repository documents the foundational data engineering, domain ontology, and graph architecture required to solve critical gaps in agricultural finance (AgriFin)—specifically the inability of financial institutions to underwrite asset-backed loans against livestock collateral due to a lack of defensible, real-time valuation metrics.
+**==> picture [50 x 51] intentionally omitted <==**
 
----
+**==> picture [50 x 51] intentionally omitted <==**
 
-## 2. Problem Statement: Systemic Information Asymmetry
-Kenya’s cattle economy represents hundreds of billions of shillings annually and serves as the primary economic backbone for millions of pastoralist and smallholder households. Despite its scale, the value chain operates on systemic information asymmetry, fragmented data, and informal price discovery. 
+**==> picture [51 x 51] intentionally omitted <==**
 
-At almost every handoff between value chain stages, critical data is lost, siloed, or inaccessible:
+**==> picture [51 x 51] intentionally omitted <==**
 
-*   **Financial Institutions & Insurers (The AgriFin Gap):** Microfinance Institutions (MFIs), SACCOs, and commercial banks cannot underwrite asset-backed loans against livestock collateral. There is no authoritative, current, or queryable price reference to calculate the Net Realizable Value (NRV) of a herd, rendering livestock an "invisible" asset class for formal credit.
-*   **Breeders & Herders:** Producers sell into primary auctions based on informal broker quotes, lacking benchmark data for comparable animals (by breed, age, weight, and body condition) across neighboring counties or terminal markets.
-*   **Finishers & Feedlot Operators:** Operators cannot systematically compare feed, fodder, and supplement costs across suppliers. Consequently, the finishing-cost-per-kilogram-gained remains an estimate, undermining margin modeling and working capital applications.
-*   **Slaughterhouses & Processors:** Facility capacities, slaughter fees, and critical export-enabling credentials (e.g., Halal certification status via DVS or SUPKEM) are scattered across disparate county records and physical registers, with no centralized digital directory.
-*   **Logistics & Transporters:** Livestock haulage is highly informal. Pricing varies by relationship rather than standardized distance/load metrics, with zero visibility or accountability for transit welfare and shrinkage.
+## **Table of Contents** 
 
----
+1. The Problem 
 
-## 3.  Data & Graph Architecture
-The current repository represents the completion of the Data Ingestion and Ontology Mapping milestone. We have successfully extracted, normalized, and loaded Tier 1 and Tier 2 institutional datasets into a production-grade Neo4j graph schema.
+2. What MifugoIQ Does 
 
-### 3.1 Ingested Data Sources
-*   **NDMA Early Warning Bulletins (Kajiado County - Feb, Apr, May 2026):** Extracted time-series price observations for cattle and goats across specific livelihood zones (Pastoral, Agro-Pastoral, Mixed Farming), alongside critical biophysical friction metrics (Vegetation Condition Index, livestock water trekking distances, and body condition scores).
-*   **DVS Export Slaughterhouse Registry:** Ingested the official directory of government-approved export abattoirs (e.g., Kenya Meat Commission, Farmers Choice, Quality Meat Packers), including location data, capacity indicators, and Halal certification status.
-*   **Feed & Logistics Benchmarks:** Seeded baseline nodes for feed products (e.g., dairy meal, mineral licks) and regional transport cost benchmarks to enable Net Realizable Value (NRV) calculations.
+3. System Architecture 
 
-### 3.2 Knowledge Graph Ontology (Neo4j)
-The graph is structured to support complex, multi-hop GraphRAG traversals required for financial underwriting and supply chain optimization.
+4. Repository Structure 
 
-#### Core Node Labels & Properties
-| Node Label | Represents | Key Properties |
-| :--- | :--- | :--- |
-| **`County`** | Administrative geography | `name`, `region` |
-| **`Market`** | Primary auction / trading point | `name`, `marketType`, `livelihoodZone` |
-| **`Breed`** | Cattle genetics | `name`, `originType` (Indigenous/Improved) |
-| **`AnimalClass`** | Demographic cohort | `ageClass`, `sex`, `bodyConditionScore` |
-| **`PriceObservation`** | Time-stamped financial data | `priceKES`, `date`, `source`, `minKES`, `maxKES` |
-| **`Slaughterhouse`** | Processing facility | `name`, `capacityHeadPerDay`, `halalCertified`, `slaughterFeeKES` |
-| **`Transporter`** | Logistics provider | `vehicleType`, `costBenchmarkKES` |
-| **`FrictionMetric`** | Biophysical / Environmental risk | `type` (e.g., Water Trek), `value`, `unit`, `date` |
+5. Data Layer — Sources & Ingestion 
 
-#### Core Relationship Types (Edges)
-| Relationship Pattern | Business Logic & Traversal Purpose |
-| :--- | :--- |
-| `(Market)-[:LOCATED_IN]->(County)` | Anchors price discovery to specific geographic and infrastructural zones. |
-| `(AnimalClass)-[:OF_BREED]->(Breed)` | Links demographic cohorts to genetic lineages for breed-premium analysis. |
-| `(AnimalClass)-[:PRICED_AT]->(PriceObservation)-[:RECORDED_AT]->(Market)` | Establishes the time-series financial valuation of specific asset classes. |
-| `(Transporter)-[:SERVICES]->(County)` | Defines logistics coverage to calculate transport deductions for NRV. |
-| `(County)-[:HAS_METRIC]->(FrictionMetric)` | Attaches environmental risk data (e.g., drought stress) to origin locations for risk-adjusted collateral valuation. |
+6. Knowledge Graph — Neo4j Schema 7. GraphRAG Agent — Featherless 
 
----
+8. Backend API 
 
-## 4. Expected Graph Outputs & Flagship Queries
-The architecture is specifically optimized for multi-hop GraphRAG reasoning. Below are the core Cypher query patterns that power the MifugoIQ intelligence layer.
-### 4.1 Visualise graph connections
+9. Agent Economy — Masumi 
 
-```cypher
-CALL db.schema.visualization()
-```
-<img width="1140" height="532" alt="image" src="https://github.com/user-attachments/assets/67d49bc4-53b5-48ce-b441-a0a6d7fb91b0" />
+10. Frontend — Lovable 
 
-```cypher
-MATCH (n)-[r]->(m)
-RETURN n, r, m
-LIMIT 50
-```
-<img width="1195" height="551" alt="image" src="https://github.com/user-attachments/assets/8c7e046d-8094-43ec-b6bf-e7d7540e66f9" />
+11. Deployment & Setup 
 
+12. Demo Script — Three Personas 13. Phase 2 Roadmap 
 
+14. Team 
 
-### 4.2 Net Realizable Value (NRV) & Market Routing
-*Used by financial underwriters and producers to determine the true value of an asset after logistical deductions.*
+## **1. The Problem** 
 
-```cypher
-// Calculate the best net price for Boran Steers originating in Kajiado, factoring in transport costs to terminal markets
-MATCH (cohort:AnimalClass {ageClass: 'Store(2-3yr)', sex: 'Male'})-[:OF_BREED]->(:Breed {name: 'Boran'})
-MATCH (cohort)-[:PRICED_AT]->(obs:PriceObservation)-[:RECORDED_AT]->(market:Market)-[:LOCATED_IN]->(destCounty:County)
-MATCH (transporter:Transporter)-[:SERVICES]->(origin:County {name: 'Kajiado'})
-MATCH (transporter)-[:SERVICES]->(destCounty)
-WHERE obs.date >= date('2026-04-01')
-RETURN 
-    market.name AS targetMarket, 
-    obs.priceKES AS grossPrice, 
-    transporter.costBenchmarkKES AS transportCost, 
-    (obs.priceKES - transporter.costBenchmarkKES) AS netRealizableValue 
-ORDER BY netRealizableValue DESC 
+Kenya's cattle economy is worth hundreds of billions of shillings annually and forms the primary livelihood for an estimated **6.36 million smallholder and pastoralist households** . The national herd stands at roughly 18 million cattle — yet at almost every handoff in the value chain, critical market information is lost, siloed, or inaccessible. 
 
-LIMIT 3;
-```
-### 4.2 Risk-Adjusted Collateral Valuation
-Used by AgriFin lenders to penalize or adjust Loan-to-Value (LTV) ratios based on localized environmental stress (e.g., severe drought or excessive water trekking indicating poor herd body condition).
+The AgriFin gap is specific: **livestock pledged as loan collateral grew 53.6% year-onyear to June 2025** (Business Registration Services data), meaning lenders already want to lend against cattle. But appetite has outrun infrastructure. A SACCO loan officer in Kajiado evaluating a KSh 500,000 loan secured by 15 Boran steers has no defensible way to answer: 
+
+_"What are these steers actually worth today, and what would I realistically recover if I had to call the loan?"_ 
+
+The data to answer that question already exists — scattered across NDMA monthly bulletins, KNBS Statistical Abstracts, KMC reference prices, and DVS abattoir registers — but it is published as **static PDFs, on monthly cycles, siloed by institution** , and entirely unqueryable by a loan officer in a three-minute credit committee meeting. 
+
+MifugoIQ is the connective tissue that fixes this. 
+
+## **2. What MifugoIQ Does** 
+
+MifugoIQ is a **knowledge-graph-powered AI agent** that maps the entire Kenyan cattle value chain into a single, continuously-updated, queryable intelligence layer. Anyone in the chain can ask a natural-language question in **English, Kiswahili, or Sheng** and get a grounded, sourced, location- and breed-specific answer. 
+
+## **Core capabilities (Phase 1 — this build):** 
+
+|**Query Type**|**Example**|**What the Agent Does**|
+|---|---|---|
+|**Price lookup**|"Bei ya ng'ombe wa Boran|Traverses AnimalClass<br>→|
+||miaka 2 huko Kajiado?"|PriceObservation<br>Market<br>County;<br>→<br>→|
+|||cites NDMA source and date|
+|**Net**|"Where's my best market for|Multi-hop: prices across markets minus|
+|**Realizable**|15 steers from Kajiado, all-|transporter cost benchmarks; ranked NRV|
+|**Value**|in?"|table|
+|**Collateral**|"Value 15 Boran steers, 2–3|Structured report: per-head price, NRV,|
+|**valuation**|years, Kajiado, as loan|environmental risk flag, suggested LTV %|
+||collateral"||
+|**Halal facility**|"Nearest Halal-certified|Filters Slaughterhouse nodes by|
+|**finder**|abattoir to Isiolo?"|halalCertified, returns name, county, fee,|
+|||capacity|
+|**Feed cost**|"Feed cost for 20 steers|FeedProduct × FeedSupplier × county;|
+|**calculator**|over 90 days near|rough cost-per-kg-gained estimate|
+||Machakos?"||
+|**Risk**|"What's the drought risk for|Returns FrictionMetric (VCI, water trek|
+|**assessment**|a herd in Kajiado this|distance) with underwriting flag|
+||month?"||
 
 
-```cypher
-// Evaluate origin county friction metrics to adjust collateral risk profiles
-MATCH (c:County {name: 'Kajiado'})-[:HAS_METRIC]->(f:FrictionMetric {type: 'Livestock Water Trek'})
-WHERE f.date >= date('2026-02-01')
-RETURN 
-    c.name AS county, 
-    f.value AS waterTrekKm, 
-    CASE 
-        WHEN f.value > 4.5 THEN 'High Risk: Reduce LTV (Herd Caloric Stress)'
-        WHEN f.value > 3.0 THEN 'Moderate Risk: Standard LTV'
-        ELSE 'Low Risk: Premium LTV'
-    END AS underwritingRecommendation;
-```
 
-### 5. Repository Structure
-MifugoIQ
+## **What makes it different from a chatbot or a spreadsheet:** 
 
-April_NDMA                            -  Raw/Processed NDMA Early Warning Bulletins (April 2026)
+The agent never fabricates a number. Every price, fee, or cost it states is either returned by a live Cypher query against the Neo4j graph or explicitly flagged as unavailable. The graph 
 
-May_NDMA/                             -  Raw/Processed NDMA Early Warning Bulletins (May 2026)
+traversal — not the LLM — does the reasoning. The LLM only composes the answer into natural language and translates it into the user's language. 
 
-June_NDMA/                            -  Raw/Processed NDMA Early Warning Bulletins (June 2026)
+## **3. System Architecture** 
 
-Approvedexportslaughterhouses.csv     -  DVS & Halal-certified abattoir directory
+┌──────────────────────────────────────────────────────── 
 
-feed_prices_mkulima_bora.csv.csv      -  Feed, fodder, and supplement pricing benchmarks
+─────┐ │                     DATA SOURCES                            │ 
 
-friction_metrics.csv.csv              -  Biophysical proxies (VCI, water trekking distances)
+│  NDMA Bulletins · KNBS Stats · DVS Registry · KMC Prices   │ 
 
-marketandzone.csv                     -  Geographic mapping of markets to livelihood zones
+│  Feed Manufacturer Lists · Transport Rate Surveys           │ 
 
-prices.csv                            -  Time-series livestock and commodity price observations
+└─────────────────────┬────────────────────────────────── ─────┘ 
 
-transport_benchmarks.csv.csv          -  Logistics and trucking cost benchmarks
+│ CSV / PDF ingestion ▼ ┌──────────────────────────────────────────────────────── 
 
-Cypher.txt                            -  Master Neo4j schema, constraints, and seeding scripts
+─────┐ │              KNOWLEDGE GRAPH LAYER                          │ │                  Neo4j AuraDB                               │ 
 
-.gitignore                            -  Standard Python/Env ignore rules
+│  County · Market · Breed · AnimalClass · PriceObservation   │ 
+
+│  Slaughterhouse · Transporter · FeedProduct · FrictionMetric│ 
+
+│  (Cypher.txt — schema + seed scripts)                       │ └─────────────────────┬────────────────────────────────── ─────┘ 
+
+│ Cypher queries ▼ 
+
+┌──────────────────────────────────────────────────────── ─────┐ │              GRAPHRAG REASONING LAYER                       │ 
+
+│              FastAPI Backend (backend/)                     │ 
+
+│                                                             │ │  agent.py          — Intent detection → Cypher template     │ │ → Neo4j → Featherless LLM → answer    │ │  cypher_templates.py — Parameterized query library          │ │  neo4j_client.py   — AuraDB connection wrapper              │ │  main.py           — 7 REST endpoints                       │ │  masumi.py         — Agent registration + payment rail      │ └────────────┬────────────────────────┬────────────────── ─────┘ │ /api/chat              │ /api/masumi/report ▼                        ▼ ┌────────────────────┐ ┌───────────────────────────────────┐ │  LOVABLE FRONTEND  │    │        MASUMI AGENT NETWORK       │ │  mifugoiq1.lovable │    │  MifugoIQ registered as paid      │ │  .app              │    │  agent service (ADA/USDM per      │ │                    │    │  report). Demo: AgriFin Lender    │ 
+
+│  Chat.tsx                Agent │ │ → pays → gets Collateral   │ │  MasumiDemo.tsx          Valuation Report │ │ → loan decision │ │  mifugoiq.ts       │    │                                   │ └────────────────────┘ 
+
+└───────────────────────────────────┘ 
+
+## **Technology Stack:** 
+
+## **Layer Technology** 
+
+## **Role** 
+
+Graph **Neo4j AuraDB** Stores the entire value chain as a database connected, queryable graph LLM serving **Featherless** Open-source LLM hosting; OpenAI(Qwen/Qwen2.5-7Bcompatible; no GPU management Instruct) Agent **Python / FastAPI** Intent detection, Cypher generation, framework answer composition Agent **Masumi** (Cardano) Agent-to-agent payment rail for B2B payments intelligence reports Frontend **Lovable** Deployed web app — chat UI, price explorer, Masumi demo 
+
+## **4. Repository Structure** 
+
+MifugoIQ/ │ ├── 📁 April_NDMA/                    # NDMA Early Warning Bulletin — April 2026 ├── 📁 May_NDMA/                      # NDMA Early Warning Bulletin — May 2026 ├── 📁 June_NDMA/                     # NDMA Early Warning Bulletin — June 2026 │ ├── 📁 prices.csv                     # Time-series livestock price observations │                                     # (county, market, breed, age class, KES, date, source) ├── 📁 marketandzone.csv              # Markets mapped to counties & livelihood zones │                                     # (Pastoral / Agro-Pastoral / Mixed Farming) ├── 📁 Approvedexportslaughterhouses.csv  # DVS-registered export abattoir directory │                                         # (name, county, Halal status, capacity) ├── 📁 feed_prices_mkulima_bora.csv.csv   # Feed & supplement pricing benchmarks │                                         # (product, category, KES/kg, supplier) ├── 📁 transport_benchmarks.csv.csv   # Livestock transport cost benchmarks 
+
+│                                     # (route, vehicle type, KES/head) ├── 📁 friction_metrics.csv.csv       # Biophysical risk metrics │   friction_metrics.csv.txt          # (VCI, water trek km, BCS, date, county) │ ├── ★ Cypher.txt                     # 📁Master Neo4j schema, constraints & seed scripts │ ├── ★ bF **a** ckend/                       # 📁stAPI backend — GraphRAG + Featherless + Masumi │   ├── main.py                       # API server (7 endpoints) │├── agent.py                      # GraphRAG pipeline (intent → Cypher → LLM → answer) │   ├── cypher_templates.py           # Parameterized Cypher query library │   ├── neo4j_client.py               # Neo4j AuraDB connection wrapper │   ├── masumi.py                     # Agent registration, payments & demo flow │   ├── requirements.txt              # Python dependencies │   ├── Procfile                      # Railway/Render deployment start command │   └── .env.example                  # Environment variable template │ ├── ★ lovable/                       # 📁Lovable frontend integration files │├── mifugoiq.ts                   # API service layer (paste → src/services/) │   ├── Chat.tsx                      # Bilingual chat UI component │   └── MasumiDemo.tsx                # Interactive Masumi agent-to-agent demo │ ├── ★ INTEGRATION_GUIDE.md           # 📁Deployment & setup guide (keys, steps, debug) ├── 📁 .gitignore └── 📁 README.md                      # This file 
+
+Files marked ★ are the primary technical references for each subsystem. 
+
+## **5. Data Layer — Sources & Ingestion** 
+
+## **5.1 Data Sources** 
+
+MifugoIQ does not generate new primary data. Its contribution is **connective tissue** — ingesting, normalising, linking, and making queryable what already exists in institutional datasets. 
+
+**Tier** 
+
+**Source** 
+
+**What It Provides** 
+
+**Files in Repo** 
+
+|**Tier**|NDMA Monthly|County-level cattle|April_NDMA/,May_NDMA/,|
+|---|---|---|---|
+|**1**|Early Warning|prices by livelihood|June_NDMA/,prices.csv,|
+||Bulletins|zone, body condition|friction_metrics.csv.csv|
+|||scores, water trek||
+|||distances (friction||
+|||metrics)||
+|**Tier**|DVS Export|Government-registered|Approvedexportslaughterhouse|
+|**1**|Abattoir Register|slaughterhouses, Halal|s.csv|
+|||certification status,||
+|||county location||
+|**Tier**|Kenya Meat|Reference slaughter|Seeded inCypher.txt|
+|**2**|Commission|fees and processing||
+||(KMC)|standards||
+|**Tier**|Feed|Feed, fodder, and|feed_prices_mkulima_bora.csv|
+|**2**|manufacturer|supplement prices per|.csv|
+||price lists (Unga|kg/bag||
+||Farm Care,|||
+||Pembe, Sigma,|||
+||Jubaili)|||
+|**Tier**|Transport rate|Per-head livestock|transport_benchmarks.csv.csv|
+|**3**|surveys /|haulage cost||
+||agricultural news|benchmarks by route||
+|**Tier**|Geographic /|Market-to-county-to-|marketandzone.csv|
+|**3**|market directory|livelihood-zone||
+|||mapping||
+
+
+
+All figures are sourced, date-stamped, and flagged with a confidence level in the graph. Researched estimates are explicitly marked as such — **silent fabrication is never acceptable** . 
+
+## **5.2 Ingestion Strategy** 
+
+Data flows into Neo4j through three mechanisms: 
+
+**1. Cypher.txt — master seed script** Contains all CREATE CONSTRAINT, CREATE INDEX, MERGE, and CREATE statements to build and populate the full graph schema from scratch. Run this in Neo4j Browser or Aura Console to rebuild the database at any time. 
+
+**2. CSV ingestion (Cypher LOAD CSV)** The structured CSVs (prices.csv, 
+
+marketandzone.csv, etc.) are loaded via LOAD CSV WITH HEADERS statements in Cypher.txt, normalising field names to the graph's controlled vocabulary before creating nodes and relationships. 
+
+**3. Manual enrichment** Slaughterhouse, feedlot, buyer, and export market nodes that cannot be fully populated from CSVs are seeded directly in Cypher.txt with MERGE patterns, ensuring every demo query has a grounded answer even where public data is sparse. 
+
+## **5.3 MVP Geographic Scope** 
+
+The seeded dataset covers the following counties and markets, chosen to span all major regions while remaining completeable in 48 hours: 
+
+|**Region**|**Counties**|**Markets**|
+|---|---|---|
+|Nairobi / Central|Nairobi, Kajiado|Dagoretti, Kiserian|
+|Rift Valley|Nakuru, Narok|Nakuru Market, Ewaso Ngiro|
+|Eastern|Machakos|Kangundo|
+|Northern / ASAL|Garissa, Isiolo|Garissa, Isiolo|
+
+
+
+**Breeds seeded:** Boran, Small East African Zebu, Sahiwal-cross, Friesian-cross **Age classes:** Weaner (1–2yr), Store (2–3yr), Mature/Finished (3+yr) 
+
+## **6. Knowledge Graph — Neo4j Schema** 
+
+## **6.1 Node Labels** 
+
+|**Node Label**|**Represents**|**Key Properties**|
+|---|---|---|
+|County|One of Kenya's 47|name,region|
+||counties||
+|Market|Primary livestock auction|name,marketType,livelihoodZone,|
+||point|frequency|
+|Breed|Cattle breed or cross|name,originType(Indigenous /|
+|||Improved Beef / Dairy)|
+|AnimalClass|Breed × age class × sex|ageClass,sex,|
+||cohort|bodyConditionScore,|
+|||liveweightRangeKg|
+|PriceObserva|Time-stamped price for a|priceKES,minKES,maxKES,date,|
+||cohort at a market||
+
+
+
+tion source, unit Slaughterhou Abattoir / processing name, county, capacityHeadPerDay, se facility halalCertified, slaughterFeeKES Transporter Livestock / meat haulage name, vehicleType, provider costBenchmarkKES, coverageCounties FeedProduct Feed, fodder, or name, category, priceKES, cpPct, supplement item caPct, pPct FeedSupplier Feed manufacturer or name, type, county agrovet FrictionMetr Biophysical risk indicator type (Water Trek / VCI / BCS), value, ic unit, date, source Feedlot Cattle finishing operation name, county, capacityHead, finishingPeriodDays Buyer Demand-side actor type (butchery / supermarket / hotel / exporter), county, gradeDemand ExportMarket Export destination country, productType, requirements (e.g. Halal mandatory) 
+
+## **6.2 Relationship Types** 
+
+**Relationshi Pattern p** LOCATED_I `(Market|Slaughterhouse|Feedlot|FeedSupplier|` N `Buyer)→(County)` OF_BREED `(AnimalClass)→(Breed)` 
+
+**Business Logic** 
+
+Anchors every actor to a county for geographic reasoning Links price cohorts to breed genetics for premium analysis 
+
+PRICED_AT `(AnimalClass)→(PriceObservation)` 
+
+RECORDED_ `(PriceObservation)→(Market)` AT 
+
+SERVICES `(Transporter)→(County)` 
+
+HAS_METRI `(County)→(FrictionMetric)` C 
+
+SUPPLIED_ `(FeedProduct)→(FeedSupplier)` BY 
+
+FEEDS_WIT `(Feedlot)→(FeedProduct)` H 
+
+CERTIFIED `(Slaughterhouse)→(ExportMarket)` _AS 
+
+EXPORTS_T `(Slaughterhouse|Buyer)→(ExportMarket)` O 
+
+Attaches timestamped price observations to cohorts 
+
+Locates each price observation at its source market 
+
+Defines logistics coverage for NRV transport deductions 
+
+Attaches environment al risk data for riskadjusted LTV 
+
+Powers feed cost sourcing queries 
+
+Links finishing operations to their input rations 
+
+Maps export eligibility (Halal, DVS grade) 
+
+Traces export channel relationships 
+
+## **6.3 Flagship Cypher Queries** 
+
+## **Net Realizable Value — the core multi-hop query:** 
+
+MATCH (a:AnimalClass {ageClass: 'Store(2-3yr)', sex: 'Male'})-[:OF_BREED]->(:Breed {name: 'Boran'}) 
+
+MATCH (a)-[:PRICED_AT]->(p:PriceObservation)-[:RECORDED_AT]->(m:Market)- 
+
+[:LOCATED_IN]->(dest:County) 
+
+MATCH (t:Transporter)-[:SERVICES]->(origin:County {name: 'Kajiado'}) 
+
+MATCH (t)-[:SERVICES]->(dest) 
+
+WHERE p.date >= date('2026-04-01') 
+
+RETURN m.name AS market, p.priceKES AS grossPrice, 
+
+t.costBenchmarkKES AS transportCost, 
+
+- (p.priceKES - t.costBenchmarkKES) AS netRealizableValue 
+
+ORDER BY netRealizableValue DESC LIMIT 3; 
+
+## **Risk-adjusted collateral underwriting:** 
+
+MATCH (c:County {name: 'Kajiado'})-[:HAS_METRIC]->(f:FrictionMetric {type: 'Livestock Water Trek'}) 
+
+WHERE f.date >= date('2026-02-01') RETURN c.name AS county, f.value AS waterTrekKm, 
+
+CASE 
+
+WHEN f.value > 4.5 THEN 'High Risk — Reduce LTV (herd caloric stress likely)' WHEN f.value > 3.0 THEN 'Moderate Risk — Standard LTV applies' ELSE 'Low Risk — Premium LTV eligible' 
+
+END AS underwritingRecommendation; 
+
+## **Halal abattoir finder:** 
+
+MATCH (s:Slaughterhouse)-[:LOCATED_IN]->(c:County) WHERE s.halalCertified = true RETURN s.name, c.name AS county, s.capacityHeadPerDay, s.slaughterFeeKES ORDER BY c.name; 
+
+## **7. GraphRAG Agent — Featherless** 
+
+## **7.1 Pipeline** 
+
+The agent in backend/agent.py follows a strict, grounded pipeline: 
+
+User query (EN / SW) │ ▼ Intent detection           — keyword + pattern matching Entity extraction          — breed, age class, county, head count, days │ 
+
+▼ Cypher template selection  — cypher_templates.py (7 intent categories: price_lookup · net_realizable_value · price_comparison · halal_slaughterhouse · feed_cost · collateral_valuation · friction_metrics) │ ▼ 
+
+Neo4j query execution      — neo4j_client.py → AuraDB │ ▼ 
+
+Grounding check            — if results empty → honest "no data" response │ ▼ 
+
+Featherless LLM call       — compose cited answer in user's language │ ▼ 
+
+Response                   — grounded answer with source + date citations 
+
+## **7.2 Model** 
+
+**Primary:** Qwen/Qwen2.5-7B-Instruct via Featherless OpenAI-compatible endpoint 
+
+- Strong instruction-following for structured reasoning tasks 
+
+- Reliable English + Kiswahili output 
+
+- Fast enough for live demo latency 
+
+**Fallback:** Qwen/Qwen2.5-14B-Instruct (upgrade via FEATHERLESS_MODEL env var if quality needs improvement) 
+
+## **7.3 Grounding Rules (Non-Negotiable)** 
+
+The agent system prompt enforces three hard constraints: 
+
+1. **Never fabricate a number.** Every price, fee, or cost must come from a graph query result. If the graph returns no data, the agent says so explicitly. 
+
+2. **Always cite the source.** Every figure is tagged with its data source (e.g. "per NDMA May 2026 bulletin") and date. 
+
+3. **Respond in the user's language.** English in → English out. Kiswahili in → Kiswahili out. Sheng → Kiswahili/English mix. 
+
+## **7.4 Sample Interactions** 
+
+**User Input Languag What Happens e** 
+
+|"Ni bei gani ya ng'ombe wa|Kiswahili|Price lookup<br>Cypher<br>NDMA price data<br>→<br>→|
+|---|---|---|
+|Boran miaka 2–3 huko<br>Kajiado?"||Kiswahili response with source<br>→|
+|"Value 15 Boran steers, 2–3|English|Collateral valuation<br>multi-hop Cypher<br>→|
+|years, Kajiado, as loan<br>collateral"||(price + transport + friction)<br>structured<br>→<br>report with LTV fag|
+|"Best market for my 15|English|NRV query<br>ranks markets by (price<br>→<br>−|
+|steers from Kajiado this<br>week, all-in?"||transport cost)<br>recommended market<br>→<br>with net fgure|
+|"Which Halal abattoirs can I|English|Halal flter query<br>facility list with<br>→|
+|use near Garissa?"||capacity and fees|
+
+
+
+## **8. Backend API** 
+
+The FastAPI server (backend/main.py) exposes 7 endpoints consumed by both the Lovable frontend and the Masumi agent network. 
+
+
+
+
+
+
